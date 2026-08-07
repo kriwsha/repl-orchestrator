@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: repl-orchestrator
+  jackson:
+    default-property-inclusion: non_null
+
+replorch:
+  monitor:
+    interval-ms: 30000
+    initial-delay-ms: 15000
+
+  reconcile:
+    # Types that may be auto-added on the subscriber. Anything outside this list is
+    # proposed, never applied, because the type may not exist on the subscriber.
+    # Leave blank to use the built-in default list.
+    safe-types: ""
+
+  vault:
+    enabled: false
+    address: https://vault.internal:8200
+    mount: secret
+    # Prefer a projected service-account token or an injected file over a static value.
+    token: ${VAULT_TOKEN:}
+
+  detector:
+    server-log:
+      # Off by default: needs pg_read_server_files + logging_collector, is unavailable on
+      # managed platforms, and the message text is locale- and version-dependent.
+      # It only corroborates; healing decisions always come from the schema diff.
+      enabled: false
+
+logging:
+  level:
+    dev.replorch: INFO
