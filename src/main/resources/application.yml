@@ -20,10 +20,10 @@ replorch:
 
   vault:
     enabled: false
-    address: https://vault.internal:8200
+    address: http://localhost:8200
     mount: secret
     # Prefer a projected service-account token or an injected file over a static value.
-    token: ${VAULT_TOKEN:}
+    token: ${VAULT_TOKEN}
 
   detector:
     server-log:
@@ -31,7 +31,11 @@ replorch:
       # managed platforms, and the message text is locale- and version-dependent.
       # It only corroborates; healing decisions always come from the schema diff.
       enabled: false
-
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
 logging:
   level:
     dev.replorch: INFO
