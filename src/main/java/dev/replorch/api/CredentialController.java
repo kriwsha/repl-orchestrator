@@ -1,6 +1,7 @@
 package dev.replorch.api;
 
 import dev.replorch.creds.CredentialStoreRegistry;
+import dev.replorch.dto.CredentialRequest;
 import dev.replorch.spi.Credential;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -47,19 +48,4 @@ public class CredentialController {
         return Map.of("credentialId", id, "exists", registry.exists(id));
     }
 
-    @ExceptionHandler(UnsupportedOperationException.class)
-    public ResponseEntity<Map<String, String>> readOnly(UnsupportedOperationException e) {
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(Map.of("error", e.getMessage()));
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> badRequest(IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-    }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> upstream(IllegalStateException e) {
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("error", e.getMessage()));
-    }
 }

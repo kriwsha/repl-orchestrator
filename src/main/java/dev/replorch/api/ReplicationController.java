@@ -2,6 +2,7 @@ package dev.replorch.api;
 
 import dev.replorch.domain.HealthReport;
 import dev.replorch.domain.ReplicationSpec;
+import dev.replorch.dto.ReplicationRequest;
 import dev.replorch.monitor.ReplicationMonitor;
 import dev.replorch.provision.ReplicationProvisioner;
 import dev.replorch.reconcile.ReconcileAction;
@@ -98,14 +99,4 @@ public class ReplicationController {
         return ResponseEntity.ok(Map.of("replication", name, "steps", steps));
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> badRequest(IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-    }
-
-    @ExceptionHandler(SQLException.class)
-    public ResponseEntity<Map<String, String>> sqlError(SQLException e) {
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(Map.of("error", e.getMessage(), "sqlState", String.valueOf(e.getSQLState())));
-    }
 }

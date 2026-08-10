@@ -19,7 +19,7 @@ replorch:
     safe-types: ""
 
   vault:
-    enabled: false
+    enabled: true
     address: http://localhost:8200
     mount: secret
     # Prefer a projected service-account token or an injected file over a static value.

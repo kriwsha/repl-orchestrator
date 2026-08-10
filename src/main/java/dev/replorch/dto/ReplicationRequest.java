@@ -1,4 +1,4 @@
-package dev.replorch.api;
+package dev.replorch.dto;
 
 import dev.replorch.domain.ReplicationSpec;
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package dev.replorch.api;
+package dev.replorch.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
@@ -17,6 +17,11 @@ public record CredentialRequest(
         @NotBlank String password,
         String sslmode
 ) {
-    public int portOrDefault() { return port == null ? 5432 : port; }
-    public String sslmodeOrDefault() { return (sslmode == null || sslmode.isBlank()) ? "require" : sslmode; }
+    public int portOrDefault() {
+        return port == null ? 5432 : port;
+    }
+
+    public String sslmodeOrDefault() {
+        return (sslmode == null || sslmode.isBlank()) ? "require" : sslmode;
+    }
 }
