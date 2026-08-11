@@ -1,4 +1,6 @@
-# repl-orchestrator
+# Logical Replication Orchestrator
+
+[![Minimum required Java version](https://img.shields.io/badge/Java-21%2B-blue?logo=openjdk)](https://openjdk.org/projects/jdk/21/)
 
 A Spring Boot 3 / Java 21 service that provisions PostgreSQL logical replication links and
 supervises them, healing the schema drift that otherwise stalls apply and lets WAL pile up
