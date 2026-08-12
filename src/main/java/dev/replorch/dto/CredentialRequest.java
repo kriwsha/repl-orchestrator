@@ -10,18 +10,7 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record CredentialRequest(
         @NotBlank String id,
-        @NotBlank String host,
-        Integer port,
-        @NotBlank String database,
+        @NotBlank String jdbcUrl,
         @NotBlank String username,
-        @NotBlank String password,
-        String sslmode
-) {
-    public int portOrDefault() {
-        return port == null ? 5432 : port;
-    }
-
-    public String sslmodeOrDefault() {
-        return (sslmode == null || sslmode.isBlank()) ? "require" : sslmode;
-    }
-}
+        @NotBlank String password
+) {}

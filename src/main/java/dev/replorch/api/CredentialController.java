@@ -1,8 +1,8 @@
 package dev.replorch.api;
 
+import dev.replorch.creds.CredentialService;
 import dev.replorch.creds.CredentialStoreRegistry;
 import dev.replorch.dto.CredentialRequest;
-import dev.replorch.spi.Credential;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +23,11 @@ import java.util.Map;
 public class CredentialController {
 
     private final CredentialStoreRegistry registry;
+    private final CredentialService credentialService;
 
-    public CredentialController(CredentialStoreRegistry registry) {
+    public CredentialController(CredentialStoreRegistry registry, CredentialService credentialService) {
         this.registry = registry;
+        this.credentialService = credentialService;
     }
 
     @GetMapping("/stores")
@@ -35,9 +37,7 @@ public class CredentialController {
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> store(@Valid @RequestBody CredentialRequest req) {
-        String id = registry.store(req.id(), new Credential(
-                req.host(), req.portOrDefault(), req.database(),
-                req.username(), req.password(), req.sslmodeOrDefault()));
+        String id = registry.store(req.id(), credentialService.fromRequest(req));
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("credentialId", id));
     }
 

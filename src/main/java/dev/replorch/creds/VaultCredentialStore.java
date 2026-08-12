@@ -15,6 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,14 +36,17 @@ public class VaultCredentialStore implements CredentialStore {
             .connectTimeout(Duration.ofSeconds(5)).build();
     private final ObjectMapper mapper = new ObjectMapper();
 
+    private final CredentialService credentialService;
     private final String address;
     private final String mount;
     private final String token;
 
     public VaultCredentialStore(
+            CredentialService credentialService,
             @Value("${replorch.vault.address}") String address,
             @Value("${replorch.vault.mount:secret}") String mount,
             @Value("${replorch.vault.token}") String token) {
+        this.credentialService = credentialService;
         this.address = address.replaceAll("/+$", "");
         this.mount = mount;
         this.token = token;
@@ -71,17 +75,37 @@ public class VaultCredentialStore implements CredentialStore {
             JsonNode data = mapper.readTree(res.body()).path("data").path("data");
             if (data.isMissingNode()) return Optional.empty();
 
-            return Optional.of(new Credential(
+            if (data.hasNonNull("jdbcUrl") && !data.path("jdbcUrl").asText().isBlank()) {
+                return Optional.of(credentialService.fromRequest(new dev.replorch.dto.CredentialRequest(
+                        id,
+                        data.path("jdbcUrl").asText(),
+                        data.path("username").asText(),
+                        data.path("password").asText())));
+            }
+
+            List<Credential.HostPort> hosts = List.of(new Credential.HostPort(
                     data.path("host").asText(),
-                    data.path("port").asInt(5432),
+                    data.path("port").asInt(5432)));
+            return Optional.of(new Credential(
+                    buildJdbcUrl(hosts, data.path("database").asText(), data.path("sslmode").asText("require")),
+                    hosts,
                     data.path("database").asText(),
                     data.path("username").asText(),
                     data.path("password").asText(),
-                    data.path("sslmode").asText("require")));
+                    data.path("sslmode").asText("require"),
+                    null));
         } catch (Exception e) {
             log.warn("vault read of '{}' failed: {}", id, e.getClass().getSimpleName());
             return Optional.empty();
         }
+    }
+
+    private String buildJdbcUrl(List<Credential.HostPort> hosts, String database, String sslmode) {
+        String hostPart = hosts.stream()
+                .map(hostPort -> hostPort.host() + ":" + hostPort.port())
+                .reduce((left, right) -> left + "," + right)
+                .orElseThrow();
+        return "jdbc:postgresql://%s/%s?sslmode=%s".formatted(hostPart, database, sslmode);
     }
 
     @Override
@@ -89,9 +113,8 @@ public class VaultCredentialStore implements CredentialStore {
         String url = "%s/v1/%s/data/%s".formatted(address, mount, id);
         try {
             String body = mapper.writeValueAsString(Map.of("data", Map.of(
-                    "host", c.host(), "port", c.port(), "database", c.database(),
-                    "username", c.username(), "password", c.password(),
-                    "sslmode", c.sslmode() == null ? "require" : c.sslmode())));
+                    "jdbcUrl", c.jdbcUrl(),
+                    "username", c.username(), "password", c.password())));
 
             HttpResponse<String> res = http.send(
                     HttpRequest.newBuilder(URI.create(url))

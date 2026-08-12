@@ -113,12 +113,16 @@ VAULT_TOKEN=... java -jar target/repl-orchestrator-0.1.0.jar
 ```bash
 # 1. store credentials (dev store; use vault: in production)
 curl -X POST localhost:8080/api/v1/credentials -H 'Content-Type: application/json' -d '{
-  "id": "memory:src-1", "host": "pg-source", "port": 5432, "database": "app",
-  "username": "repl", "password": "...", "sslmode": "require" }'
+  "id": "memory:src-1",
+  "jdbcUrl": "jdbc:postgresql://pg-source:5432/app?targetServerType=primary&sslmode=require",
+  "username": "repl", "password": "..." }'
 
 curl -X POST localhost:8080/api/v1/credentials -H 'Content-Type: application/json' -d '{
-  "id": "memory:dst-1", "host": "pg-sub", "port": 5432, "database": "app",
-  "username": "postgres", "password": "...", "sslmode": "require" }'
+  "id": "memory:dst-1", "jdbcUrl": "jdbc:postgresql://pg-sub:5432/app?sslmode=require",
+  "username": "postgres", "password": "..." }'
+
+# Multiple hosts and per-host ports are supported:
+# jdbc:postgresql://pg-1:5432,pg-2:5433/app?targetServerType=primary&sslmode=verify-full
 
 # 2. create the replication link
 curl -X POST localhost:8080/api/v1/replications -H 'Content-Type: application/json' -d '{
