@@ -31,9 +31,14 @@ import java.util.Optional;
 public class VaultCredentialStore implements CredentialStore {
 
     private static final Logger log = LoggerFactory.getLogger(VaultCredentialStore.class);
+    private static final String SCHEMA = "vault";
+    private static final String URL_TMPLT = "%s/v1/%s/data/%s";
+    private static final String JDBC_TMPLT = "jdbc:postgresql://%s/%s?sslmode=%s";
 
-    private final HttpClient http = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5)).build();
+    private final HttpClient http = HttpClient
+            .newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final CredentialService credentialService;
@@ -53,11 +58,13 @@ public class VaultCredentialStore implements CredentialStore {
     }
 
     @Override
-    public String scheme() { return "vault"; }
+    public String scheme() {
+        return SCHEMA;
+    }
 
     @Override
     public Optional<Credential> resolve(String id) {
-        String url = "%s/v1/%s/data/%s".formatted(address, mount, id);
+        String url = URL_TMPLT.formatted(address, mount, id);
         try {
             HttpResponse<String> res = http.send(
                     HttpRequest.newBuilder(URI.create(url))
@@ -105,7 +112,7 @@ public class VaultCredentialStore implements CredentialStore {
                 .map(hostPort -> hostPort.host() + ":" + hostPort.port())
                 .reduce((left, right) -> left + "," + right)
                 .orElseThrow();
-        return "jdbc:postgresql://%s/%s?sslmode=%s".formatted(hostPart, database, sslmode);
+        return JDBC_TMPLT.formatted(hostPart, database, sslmode);
     }
 
     @Override
@@ -114,7 +121,10 @@ public class VaultCredentialStore implements CredentialStore {
         try {
             String body = mapper.writeValueAsString(Map.of("data", Map.of(
                     "jdbcUrl", c.jdbcUrl(),
-                    "username", c.username(), "password", c.password())));
+                    "username", c.username(),
+                    "password", c.password(),
+                    "hosts", c.hosts().isEmpty() ? List.of(c.host()) : c.hosts(),
+                    "database", c.database())));
 
             HttpResponse<String> res = http.send(
                     HttpRequest.newBuilder(URI.create(url))

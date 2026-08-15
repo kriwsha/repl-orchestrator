@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static dev.replorch.util.CommonUtils.valueOrDefault;
+
 /** Converts write-only credential API payloads into resolved runtime credentials. */
 @Service
 public class CredentialService {
@@ -175,10 +177,6 @@ public class CredentialService {
             params.put(decode(key).toLowerCase(Locale.ROOT), decode(value));
         }
         return params;
-    }
-
-    private String valueOrDefault(String value, String defaultValue) {
-        return value == null || value.isBlank() ? defaultValue : value;
     }
 
     private String decode(String value) {

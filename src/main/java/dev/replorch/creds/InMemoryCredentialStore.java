@@ -15,10 +15,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class InMemoryCredentialStore implements CredentialStore {
 
+    private static final String SCHEMA = "memory";
+
     private final Map<String, Credential> creds = new ConcurrentHashMap<>();
 
     @Override
-    public String scheme() { return "memory"; }
+    public String scheme() { return SCHEMA; }
 
     @Override
     public Optional<Credential> resolve(String id) {
